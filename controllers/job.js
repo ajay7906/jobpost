@@ -32,6 +32,7 @@ const createJobPost = async (req, res, next) => {
         }
 
         const userId = req.userId;
+        console.log(req);
 
         const jobDetails = new Job({
             companyName,
@@ -75,6 +76,7 @@ const updateJobDetailsById = async (req, res, next) => {
     try {
         const jobId = req.params.jobId;
         const userId = req.userId;
+        
 
         if (!jobId) {
             return res.status(400).json({
@@ -83,7 +85,7 @@ const updateJobDetailsById = async (req, res, next) => {
         }
 
         const isJobExists = Job.findOne({ _id: jobId, refUserId: userId });
-        // bug in this code
+        
 
         if (!isJobExists) {
             return res.status(400).json({
@@ -154,10 +156,49 @@ const getAllJobs = async (req, res, next) => {
         next(error);
     }
 };
+const deleteJobs = async (req, res, next) =>{
+    try {
+        const jobId = req.params.jobId;
+        const userId = req.userId;
+        
+
+        if (!jobId) {
+            return res.status(400).json({
+                errorMessage: "Bad Request",
+            });
+        }
+        const isJobExists = Job.findOne({ _id: jobId, refUserId: userId });
+        
+
+        if (!isJobExists) {
+            return res.status(400).json({
+                errorMessage: "Bad Request",
+            });
+        }
+        //delete the job
+        const deleteJob = await  Job.findByIdAndDelete({_id:jobId, refUserId:userId})
+        if (!deleteJob) {
+            return res.status(500).json({
+                errorMessage:"Failed to delete the job"
+            })
+            
+        }
+        res.status(200).json({
+            message: "Job deleted successfully",
+            deletedJob: deleteJob // Optionally, you can send the deleted job back in the response
+        });
+
+        
+    } catch (error) {
+        next(error);
+        
+    }
+}
 
 module.exports = {
     createJobPost,
     getJobDetailsById,
     updateJobDetailsById,
     getAllJobs,
+    deleteJobs
 };
