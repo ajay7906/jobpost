@@ -76,7 +76,7 @@ const updateJobDetailsById = async (req, res, next) => {
     try {
         const jobId = req.params.jobId;
         const userId = req.userId;
-        
+
 
         if (!jobId) {
             return res.status(400).json({
@@ -85,7 +85,7 @@ const updateJobDetailsById = async (req, res, next) => {
         }
 
         const isJobExists = Job.findOne({ _id: jobId, refUserId: userId });
-        
+
 
         if (!isJobExists) {
             return res.status(400).json({
@@ -147,8 +147,23 @@ const updateJobDetailsById = async (req, res, next) => {
 const getAllJobs = async (req, res, next) => {
     try {
         const title = req.query.title || "";
+        const skills = req.query.skills;
+        let filteredSkills;
+        let filter = {};
+
+        if (skills) {
+            filteredSkills = skills.split(",");
+            const caseInsensitiveFilteredSkills = filteredSkills.map(
+                (element) => new RegExp(element, "i")
+            );
+            filter = { skills: { $in: caseInsensitiveFilteredSkills } };
+        }
+
         const jobList = await Job.find(
-            { title: { $regex: title, $options: "i" } },
+            {
+                title: { $regex: title, $options: "i" },
+                ...filter,
+            },
             { companyName: 1, title: 1 }
         );
         res.json({ data: jobList });
@@ -156,11 +171,11 @@ const getAllJobs = async (req, res, next) => {
         next(error);
     }
 };
-const deleteJobs = async (req, res, next) =>{
+const deleteJobs = async (req, res, next) => {
     try {
         const jobId = req.params.jobId;
         const userId = req.userId;
-        
+
 
         if (!jobId) {
             return res.status(400).json({
@@ -168,7 +183,7 @@ const deleteJobs = async (req, res, next) =>{
             });
         }
         const isJobExists = Job.findOne({ _id: jobId, refUserId: userId });
-        
+
 
         if (!isJobExists) {
             return res.status(400).json({
@@ -176,22 +191,22 @@ const deleteJobs = async (req, res, next) =>{
             });
         }
         //delete the job
-        const deleteJob = await  Job.findByIdAndDelete({_id:jobId, refUserId:userId})
+        const deleteJob = await Job.findByIdAndDelete({ _id: jobId, refUserId: userId })
         if (!deleteJob) {
             return res.status(500).json({
-                errorMessage:"Failed to delete the job"
+                errorMessage: "Failed to delete the job"
             })
-            
+
         }
         res.status(200).json({
             message: "Job deleted successfully",
             deletedJob: deleteJob // Optionally, you can send the deleted job back in the response
         });
 
-        
+
     } catch (error) {
         next(error);
-        
+
     }
 }
 
