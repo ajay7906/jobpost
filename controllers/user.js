@@ -8,7 +8,8 @@ const registerUser = async (req, res) => {
 
         if (!name || !email || !password || !mobile) {
             return res.status(400).json({
-                errorMessage: "Bad request",
+                errorMessage: "complete all filled",
+                success: false
             });
         }
 
@@ -16,7 +17,7 @@ const registerUser = async (req, res) => {
         if (isExistingUser) {
             return res
                 .status(409)
-                .json({ errorMessage: "User already exists" });
+                .json({success: false, errorMessage: "User already exists" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -29,10 +30,10 @@ const registerUser = async (req, res) => {
         });
 
         await userData.save();
-        res.json({ message: "User registered successfully" });
+        res.json({success: true, message: "User registered successfully" });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ errorMessage: "Something went wrong!" });
+        res.status(500).json({success: false, errorMessage: "Something went wrong!" });
     }
 };
 
@@ -42,6 +43,7 @@ const loginUser = async (req, res) => {
 
         if (!email || !password) {
             return res.status(400).json({
+                success: false,
                 errorMessage: "Bad Request! Invalid credentials",
             });
         }
@@ -51,7 +53,7 @@ const loginUser = async (req, res) => {
         if (!userDetails) {
             return res
                 .status(401)
-                .json({ errorMessage: "User doesn't exists" });
+                .json({success: false, errorMessage: "User doesn't exists" });
         }
 
         const passwordMatch = await bcrypt.compare(
@@ -62,7 +64,7 @@ const loginUser = async (req, res) => {
         if (!passwordMatch) {
             return res
                 .status(401)
-                .json({ errorMessage: "Invalid credentials" });
+                .json({success: false, errorMessage: "Invalid credentials" });
         }
 
         const token = jwt.sign(
@@ -72,13 +74,14 @@ const loginUser = async (req, res) => {
         );
 
         res.json({
+            success: true,
             message: "User logged in",
             token: token,
             name: userDetails.name,
         });
     } catch (error) {
         console.log(error);
-        res.status(500).json({ errorMessage: "Something went wrong!" });
+        res.status(500).json({success: false, errorMessage: "Something went wrong!" });
     }
 };
 

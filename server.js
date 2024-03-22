@@ -3,9 +3,10 @@ const express = require("express");
 const mongoose = require("mongoose");
 const authRoute = require("./routes/auth");
 const jobRoute = require("./routes/job");
+const cors = require('cors')
 
 const app = express();
-
+app.use(cors())
 app.use(express.json());
 
 mongoose
